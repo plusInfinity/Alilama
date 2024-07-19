@@ -163,8 +163,15 @@ class Transformer(nn.Module):
         x = self.last_lin(x)
         # Note that the last Softmax function is implicitly calculated in the cross entropy
         if y is not None:
-            x_view = x.view(-1, self.token_count)
-            y_view = y.view(-1)
+            # Calculate the index to split the sequence
+            split_index = x.shape[1] // 2
+
+            # Use only the second half for loss calculation
+            # Note, .contiguous() bolow might be not needed
+            x_view = x[:, split_index:].contiguous().view(-1, self.token_count)
+            y_view = y[:, split_index:].contiguous().view(-1)
+
+
             self.last_loss = F.cross_entropy(x_view, y_view)
         return x
     
